@@ -1,0 +1,50 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  </head>
+  <body>
+    <h1>テスト！！！！！！！！！！！！</h1>
+    <% require 'pg' %>
+    <% connection = PG::connect(dbname: "goya") %>
+    <% connection.internal_encoding = "UTF-8" %>
+    <form action='indicate.cgi' mehod='POST'>
+      下記に文字を入力してください<br><br>
+      <input type="text" name='input'><br>
+      <input type="submit" name="送信">
+    </form>
+    <% result = connection.exec("select weight, give_for from crops;") %>
+    <% data = [] %>
+    <% result.each do |record| %>
+      <% data << "ゴーヤの大きさ：#{record["weight"]}　売った相手：#{record["give_for"]} " %>
+    <% end %>
+    <form action="goya.cgi" method="POST">
+      下記のボタンを押すと、ゴーヤの大きさと売った相手の情報ページに飛びます<br><br>
+      <input type="text" name="goya" value="<%= data.join('') %>">
+      <input type="submit" name="送信">
+    </form>
+
+    <!-- 追加機能1 -->
+    <% to_others = connection.exec("select * from crops where give_for <> '自家消費';") %>
+    <% others = [] %>
+    <% to_others.each do |temp| %>
+      <% others << "ゴーヤの長さ：#{temp["length"]}　ゴーヤの大きさ：#{temp["weight"]}　品質：#{temp["quality"]}　譲渡先：#{temp["give_for"]}　日付：#{temp["date"]} " %>
+    <% end %>
+    <form action="others.cgi" method='POST'>
+      下記のボタンを押すと、譲渡先が自家消費ではないもののgoyaの情報ページに飛びます<br><br>
+      <input type="text" name="others" value="<%= others.join('') %>">
+      <input type="submit" name="送信">
+    </form>
+
+    <!-- 追加機能2 -->
+    <% bad_item = connection.exec("select * from crops where quality = false;") %>
+    <% data = [] %>
+    <% bad_item.each do |temp| %>
+      <% data << "ゴーヤの長さ：#{temp["length"]}　ゴーヤの大きさ：#{temp["weight"]}　品質：#{temp["quality"]}　譲渡先：#{temp["give_for"]}　日付：#{temp["date"]} " %>
+    <% end %>
+    <form action="bad.cgi" method='POST'>
+      下記のボタンを押すと、品質が悪いもののgoyaの情報ページに飛びます<br><br>
+      <input type="text" name="bad_item" value="<%= data.join('') %>">
+      <input type="submit" name="送信">
+    </form>
+  </body>
+</html>
